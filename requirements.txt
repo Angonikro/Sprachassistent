@@ -1,0 +1,5 @@
+requests
+SpeechRecognition
+RapidFuzz
+opencv-python
+Pillow

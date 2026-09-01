@@ -11,6 +11,26 @@ Deutschsprachiger Sprachassistent von Goldisoft.
 - `LICENSE` – MIT-Lizenz
 - `.gitignore`
 
+## Installation und Abhängigkeiten
+
+Für die aktuelle Programmversion werden folgende externen Python-Pakete benötigt:
+
+```text
+requests
+SpeechRecognition
+RapidFuzz
+opencv-python
+Pillow
+```
+
+Installation aller Abhängigkeiten mit:
+
+```bash
+pip install -r requirements.txt
+```
+
+Module wie `tkinter`, `sqlite3`, `json`, `threading` und weitere Standardmodule gehören zu Python und werden deshalb nicht in `requirements.txt` aufgeführt.
+
 ## Manuelle Websuche
 
 Der Assistent unterstützt den Sprachbefehl **„Websuche starten“**.
