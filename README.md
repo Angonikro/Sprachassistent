@@ -2,18 +2,21 @@
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
-## Enthalten
+## Funktionen
 
-- `Sprachassistent.py` – aktuelle Programmversion
-- `Sprachassistent_Anleitung_v5.1.pdf` – vollständige Anleitung
-- `README.md` – Projektübersicht
-- `CHANGELOG.md` – Änderungen
-- `LICENSE` – MIT-Lizenz
-- `.gitignore`
+- Sprachsteuerung und Sprachausgabe
+- Chat-/Antwortfenster
+- Websuche
+- Sprachbefehl **„Websuche starten“**
+- Speichern von Antworten
+- Terminplaner / Erinnerungen
+- weitere Funktionen der aktuellen Programmversion
 
-## Installation und Abhängigkeiten
+## Installation
 
-Für die aktuelle Programmversion werden folgende externen Python-Pakete benötigt:
+Die aktuelle Programmdatei ist eine Python-Anwendung.
+
+Benötigte externe Python-Pakete:
 
 ```text
 requests
@@ -23,27 +26,39 @@ opencv-python
 Pillow
 ```
 
-Installation aller Abhängigkeiten mit:
+Installation:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Module wie `tkinter`, `sqlite3`, `json`, `threading` und weitere Standardmodule gehören zu Python und werden deshalb nicht in `requirements.txt` aufgeführt.
+Eine konkrete Mindestversion von Python wird im Programmcode nicht ausdrücklich geprüft.
+
+## Start
+
+Nach der Installation der Abhängigkeiten:
+
+```bash
+python Sprachassistent.py
+```
 
 ## Manuelle Websuche
 
-Der Assistent unterstützt den Sprachbefehl **„Websuche starten“**.
+Mit **„Websuche starten“** wird die manuelle Websuche gestartet.
 
 Ablauf:
 
 1. „Websuche starten“
 2. Der Assistent fragt: „Was möchtest du suchen?“
 3. Die nächste gesprochene Eingabe wird als vollständige Suchfrage verwendet.
-4. Wenn ein Satz die Frage vollständig beantwortet, wird nur dieser Satz ausgegeben.
-5. Falls mehr Erklärung nötig ist, können bis zu drei passende Sätze ausgegeben werden.
+4. Wenn ein Satz die Frage ausreichend beantwortet, wird die Antwort kurz gehalten.
+5. Falls mehr Erklärung nötig ist, können mehrere passende Sätze verwendet werden.
 6. Die Antwort kann anschließend gespeichert werden.
 
-Die automatische Websuche bleibt getrennt davon bestehen.
+Die automatische Websuche bleibt davon getrennt.
+
+## Plattformhinweis
+
+Der aktuelle Quellcode enthält einen direkten Import von `fcntl`. `fcntl` ist nicht Bestandteil der normalen Windows-Python-Umgebung. Daher sollte die aktuelle Datei vor einer Windows-Veröffentlichung noch auf Plattformkompatibilität geprüft werden.
 
 **Version 5.1 – By Goldisoft 2026**
