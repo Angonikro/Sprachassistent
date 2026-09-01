@@ -12,6 +12,10 @@ Deutschsprachiger Sprachassistent von Goldisoft.
 - Terminplaner / Erinnerungen
 - weitere Funktionen der aktuellen Programmversion
 
+## Screenshot
+
+![Sprachassistent](sprachassistent.png)
+
 ## Installation
 
 Die aktuelle Programmdatei ist eine Python-Anwendung.
