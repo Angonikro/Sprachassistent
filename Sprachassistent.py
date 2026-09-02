@@ -45,6 +45,7 @@ SPEAKING = False
 SPEECH_BLOCK_LISTENING = threading.Event()
 SPEECH_SHUTDOWN = threading.Event()
 SPEECH_THREAD = None
+SPEECH_PROCESS = None
 APP_INSTANCE = None
 
 HELP_TEXT = """
@@ -1083,8 +1084,9 @@ def speech_worker():
         SPEECH_BLOCK_LISTENING.set()
         mute_system_mic()
 
+        global SPEECH_PROCESS
         try:
-            subprocess.run(
+            SPEECH_PROCESS = subprocess.Popen(
                 [
                     "espeak-ng",
                     "-v", voice,
@@ -1093,11 +1095,13 @@ def speech_worker():
                     "-a", str(volume),
                     text
                 ],
-                check=False
+                start_new_session=True
             )
+            SPEECH_PROCESS.wait()
         except Exception as e:
             print("Sprachausgabe Fehler:", e)
         finally:
+            SPEECH_PROCESS = None
             restore_system_mic_state(mic_was_active)
             SPEAKING = False
             speech_queue.task_done()
@@ -3986,6 +3990,13 @@ class AssistantApp:
         ):
             self.listen_thread.join(timeout=1.5)
 
+        # Aktuellen Datenstand beim Beenden sichern, sofern aktiviert.
+        try:
+            if self.auto_backup_enabled.get():
+                backup_database(self.backup_name.get())
+        except Exception as e:
+            print("Automatisches Backup beim Beenden fehlgeschlagen:", e)
+
         # TTS-Warteschlange beenden und Mikrofon sicher freigeben.
         shutdown_speech_worker()
 
@@ -4623,6 +4634,9 @@ class AssistantApp:
 
     def _resume_after_answer_finished(self):
         """Nach einer normalen TTS-Antwort sicher und genau einmal zuhören."""
+        if getattr(self, "_manual_stop_latched", False):
+            self._resume_after_answer = False
+            return
         if not self.scheduler_running or SPEECH_SHUTDOWN.is_set():
             self._resume_after_answer = False
             return
@@ -4671,6 +4685,8 @@ class AssistantApp:
 
 
     def manual_start_listening(self):
+        # Bewusstes STARTEN hebt einen vorherigen manuellen STOPP auf.
+        self._manual_stop_latched = False
         # Nur der manuelle START-Button zeigt die Statusmeldung im Chat.
         try:
             self.log("Aufnahme gestartet.")
@@ -4740,6 +4756,10 @@ class AssistantApp:
 
     def start_listening(self):
 
+        # Ein automatischer Neustart darf einen manuellen STOPP nicht übergehen.
+        if getattr(self, "_manual_stop_latched", False):
+            return
+
         # Bereits laufendes Zuhören nicht doppelt starten.
         with self._listen_lock:
             if self.listening:
@@ -4803,15 +4823,37 @@ class AssistantApp:
 
 
     def stop_listening(self):
-
-        # Nur den Zustand ändern. Der Aufnahme-Thread selbst gibt den
-        # SpeechRecognition/PortAudio-Stream frei. Dadurch kann STOP nicht
-        # parallel in einen laufenden ALSA/PulseAudio-Stream eingreifen.
+        # STOPP ist ein harter Abbruch: Aufnahme, laufende TTS und
+        # wartende Sprachansagen werden gemeinsam beendet.
+        global SPEECH_PROCESS
         with self._listen_lock:
             self.listening = False
             self._stop_requested = True
             self._resume_after_answer = False
+            self._manual_stop_latched = True
             self.audio_level = 0
+
+        # Bereits geplante TTS sofort beenden.
+        proc = SPEECH_PROCESS
+        if proc is not None:
+            try:
+                proc.terminate()
+                proc.wait(timeout=0.5)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+
+        # Wartende Ansagen verwerfen, damit nach dem Stop nichts nachgesprochen wird.
+        while True:
+            try:
+                speech_queue.get_nowait()
+                speech_queue.task_done()
+            except queue.Empty:
+                break
+
+        SPEECH_BLOCK_LISTENING.set()
 
         try:
             self.status_label.configure(text="● BEREIT", fg=current_theme["green"])
@@ -7896,6 +7938,8 @@ class AssistantApp:
 
     def resume_listening_after_speech(self, delay=200, resume_listening=True):
         """Stellt nach TTS nur dann die Sprachaufnahme wieder her, wenn sie vorher lief."""
+        if getattr(self, "_manual_stop_latched", False):
+            return
         if not self.scheduler_running:
             return
 
@@ -8914,12 +8958,6 @@ def main():
     app = AssistantApp(
         root
     )
-
-    if app.auto_backup_enabled.get():
-
-        backup_database(
-            app.backup_name.get()
-        )
 
     root.mainloop()
 
