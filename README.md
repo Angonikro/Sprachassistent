@@ -16,6 +16,11 @@ Deutschsprachiger Sprachassistent von Goldisoft.
 
 ![Sprachassistent](sprachassistent.png)
 
+
+## Github Seite
+https://angonikro.github.io/Sprachassistent/
+
+
 ## Installation
 
 Die aktuelle Programmdatei ist eine Python-Anwendung.
