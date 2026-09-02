@@ -18,7 +18,7 @@ Deutschsprachiger Sprachassistent von Goldisoft.
 
 
 ## Github Seite
-https://angonikro.github.io/Sprachassistent/
+https://github.com/Angonikro/Sprachassistent/
 
 
 ## Installation
