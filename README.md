@@ -49,6 +49,11 @@ Nach der Installation der Abhängigkeiten:
 ```bash
 python Sprachassistent.py
 ```
+Du kannst auch eine Desktop Verknüpfung erstellen.
+
+```bash
+chmod +x install_desktop_launcher.sh
+./install_desktop_launcher.sh
 
 ## Manuelle Websuche
 
