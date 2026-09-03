@@ -54,7 +54,7 @@ Du kannst auch eine Desktop Verknüpfung erstellen.
 ```bash
 chmod +x install_desktop_launcher.sh
 ./install_desktop_launcher.sh
-
+```
 ## Manuelle Websuche
 
 Mit **„Websuche starten“** wird die manuelle Websuche gestartet.
