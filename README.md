@@ -1,8 +1,10 @@
-# Sprachassistent v5.1
+# Sprachassistent v5.2
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
 ## Funktionen
+
+- **Windows-Sound:** Native Windows-Sprachausgabe über `System.Speech`; Linux verwendet weiterhin `espeak-ng`.
 
 - Sprachsteuerung und Sprachausgabe
 - Chat-/Antwortfenster
@@ -11,14 +13,6 @@ Deutschsprachiger Sprachassistent von Goldisoft.
 - Speichern von Antworten
 - Terminplaner / Erinnerungen
 - weitere Funktionen der aktuellen Programmversion
-
-## Screenshot
-
-![Sprachassistent](sprachassistent.png)
-
-
-
-[Github Seite](https://github.com/Angonikro/Sprachassistent/)
 
 ## Installation
 
@@ -49,12 +43,14 @@ Nach der Installation der Abhängigkeiten:
 ```bash
 python Sprachassistent.py
 ```
+
 Du kannst auch eine Desktop Verknüpfung erstellen.
 
 ```bash
 chmod +x install_desktop_launcher.sh
 ./install_desktop_launcher.sh
 ```
+
 ## Manuelle Websuche
 
 Mit **„Websuche starten“** wird die manuelle Websuche gestartet.
@@ -74,4 +70,4 @@ Die automatische Websuche bleibt davon getrennt.
 
 Der aktuelle Quellcode enthält einen direkten Import von `fcntl`. `fcntl` ist nicht Bestandteil der normalen Windows-Python-Umgebung. Daher sollte die aktuelle Datei vor einer Windows-Veröffentlichung noch auf Plattformkompatibilität geprüft werden.
 
-**Version 5.1 – By Goldisoft 2026**
+**Version 5.2 – By Goldisoft 2026**
