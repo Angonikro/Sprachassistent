@@ -2,6 +2,8 @@
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
+[Github Seite](https://github.com/Angonikro/Sprachassistent/)
+
 ## Funktionen
 
 - **Windows-Sound:** Native Windows-Sprachausgabe über `System.Speech`; Linux verwendet weiterhin `espeak-ng`.
