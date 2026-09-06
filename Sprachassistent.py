@@ -1,4 +1,10 @@
+import sys
 import tkinter as tk
+
+try:
+    import winsound
+except ImportError:
+    winsound = None
 from tkinter import ttk, messagebox, filedialog, simpledialog
 import sqlite3
 import json
@@ -304,12 +310,15 @@ Testansage:
 
 20. SOUND-TREIBER
 Unter „Einstellungen → Sound-Treiber“:
+• windows – native Windows-Audioausgabe
 • pulse
 • alsa
 • sdl
 • oss
 • jack
 • portaudio
+Unter Windows wird die Sprachausgabe über Windows Speech/Sound ausgegeben.
+Für VLC wird bei „windows“ die Windows-Audioausgabe verwendet.
 Nach dem Speichern wird das Audio-System neu gestartet.
 
 21. MUSIKORDNER
@@ -500,6 +509,20 @@ THEME_GRUVBOX = THEME_DARK
 
 current_theme = THEME_DARK
 
+
+
+def play_windows_sound(sound_file=None):
+    """Play a WAV on Windows using the native Windows audio API."""
+    if sys.platform != "win32" or winsound is None:
+        return False
+    try:
+        if sound_file and os.path.exists(sound_file):
+            winsound.PlaySound(sound_file, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        else:
+            winsound.MessageBeep(winsound.MB_ICONASTERISK)
+        return True
+    except Exception:
+        return False
 
 def set_theme_by_name(name):
     global current_theme
@@ -984,6 +1007,22 @@ def _restore_mic_after_vlc_stops():
 
 
 def start_vlc_with_mic_control(command):
+    # Unter Windows VLC ausdrücklich über die native Audioausgabe starten.
+    # Unter Linux bleiben die vorhandenen VLC-Aufrufe unverändert.
+    try:
+        if os.name == "nt" and load_sound_driver() == "windows":
+            if command and command[0].lower().endswith("vlc.exe"):
+                command = list(command)
+                if "--aout=mmdevice" not in command:
+                    command.insert(1, "--aout=mmdevice")
+            elif command and command[0].lower() == "vlc":
+                command = list(command)
+                if "--aout=mmdevice" not in command:
+                    command.insert(1, "--aout=mmdevice")
+    except Exception as e:
+        print("VLC Windows-Audioausgabe Hinweis:", e)
+
+def start_vlc_with_mic_control(command):
     """Startet VLC, beendet vorher die Sprachaufnahme und stellt sie
     nach dem Ende von VLC nur dann wieder her, wenn sie vorher aktiv war."""
     global VLC_MIC_STATE_BEFORE_MUSIC
@@ -1057,6 +1096,40 @@ def start_vlc_with_mic_control(command):
     return process
 
 
+
+def _speak_windows_native(text, speed=165, volume=185):
+    # Windows-Sprachausgabe ohne espeak-ng.
+    if os.name != "nt":
+        return False
+
+    ps = r'''
+Add-Type -AssemblyName System.Speech
+$s = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$s.Volume = [Math]::Max(0, [Math]::Min(100, [int](VOLUME)))
+$rate = [Math]::Max(-10, [Math]::Min(10, [int](([double](SPEED) - 165) / 12)))
+$s.Rate = $rate
+$s.Speak([string](TEXT))
+$s.Dispose()
+'''
+    ps = ps.replace("VOLUME", str(int(float(volume) * 100 / 200)))
+    ps = ps.replace("SPEED", str(int(speed)))
+    ps = ps.replace("TEXT", json.dumps(str(text), ensure_ascii=False))
+    encoded = base64.b64encode(ps.encode("utf-16le")).decode("ascii")
+
+    try:
+        subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive",
+             "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+        return True
+    except Exception as e:
+        print("Windows-Sprachausgabe Fehler:", e)
+        return False
+
+
 def speech_worker():
     global SPEAKING
 
@@ -1086,18 +1159,21 @@ def speech_worker():
 
         global SPEECH_PROCESS
         try:
-            SPEECH_PROCESS = subprocess.Popen(
-                [
-                    "espeak-ng",
-                    "-v", voice,
-                    "-s", str(speed),
-                    "-p", str(pitch),
-                    "-a", str(volume),
-                    text
-                ],
-                start_new_session=True
-            )
-            SPEECH_PROCESS.wait()
+            if os.name == "nt":
+                _speak_windows_native(text, speed, volume)
+            else:
+                SPEECH_PROCESS = subprocess.Popen(
+                    [
+                        "espeak-ng",
+                        "-v", voice,
+                        "-s", str(speed),
+                        "-p", str(pitch),
+                        "-a", str(volume),
+                        text
+                    ],
+                    start_new_session=True
+                )
+                SPEECH_PROCESS.wait()
         except Exception as e:
             print("Sprachausgabe Fehler:", e)
         finally:
@@ -2323,7 +2399,9 @@ def play_local_music(search=None):
 def restart_audio_system(driver):
     try:
 
-        if driver == "pulse":
+        if driver == "windows":
+            print("Windows-Audio verwendet die native Windows-Soundausgabe.")
+        elif driver == "pulse":
             os.system(
                 "systemctl --user restart pipewire"
             )
@@ -3392,7 +3470,7 @@ class AssistantApp:
 
         tk.Label(
             win,
-            text="Version 5.1",
+            text="Version 5.2",
             font=("TkDefaultFont", 16, "bold"),
             bg=current_theme["bg"],
             fg=current_theme["fg"]
@@ -3469,6 +3547,7 @@ class AssistantApp:
         current = load_sound_driver()
 
         drivers = [
+            "windows",
             "pulse",
             "alsa",
             "sdl",
@@ -8780,7 +8859,7 @@ class AssistantApp:
         var = tk.StringVar(value=load_sound_driver())
         card = tk.Frame(content, bg=th["bg2"]); card.pack(fill=tk.X, pady=4)
         tk.Label(card, text="Sound-Treiber", font=("TkDefaultFont", 11, "bold"), bg=th["bg2"], fg=th["fg"]).pack(anchor=tk.W, padx=18, pady=(16, 8))
-        for driver in ["pulse", "alsa", "sdl", "oss", "jack", "portaudio"]:
+        for driver in ["windows", "pulse", "alsa", "sdl", "oss", "jack", "portaudio"]:
             ttk.Radiobutton(card, text=driver, value=driver, variable=var).pack(anchor=tk.W, padx=24, pady=2)
         def save_driver():
             driver = var.get(); save_sound_driver(driver); self.sound_driver = driver; self.save_all_settings(); restart_audio_system(driver)
