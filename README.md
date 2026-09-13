@@ -2,7 +2,7 @@
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
-![Chess_Pionier](sprachassistent.png)
+![Sprachassistent](sprachassistent.png)
 
 [Github Seite](https://github.com/Angonikro/Sprachassistent/)
 
