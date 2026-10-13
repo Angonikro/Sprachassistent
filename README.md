@@ -1,77 +1,38 @@
-# Sprachassistent v5.2
+# Sprachassistent v5.3
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
-![Sprachassistent](sprachassistent.png)
-
-[Github Seite](https://github.com/Angonikro/Sprachassistent/)
-
 ## Funktionen
-
-- **Windows-Sound:** Native Windows-Sprachausgabe über `System.Speech`; Linux verwendet weiterhin `espeak-ng`.
-
 - Sprachsteuerung und Sprachausgabe
-- Chat-/Antwortfenster
+- Chat-/Antwortfenster und gespeicherte Fragen/Antworten
 - Websuche
-- Sprachbefehl **„Websuche starten“**
-- Speichern von Antworten
-- Terminplaner / Erinnerungen
-- weitere Funktionen der aktuellen Programmversion
+- Terminplaner und Erinnerungen
+- Windows-Sprachausgabe über den Windows-Soundtreiber
+- Weitere Funktionen des Sprachassistenten
 
-## Installation
+## Installation unter Debian 13 / Raspberry Pi
+Die Anwendung benötigt die in `requirements.txt` aufgeführten Python-Pakete sowie die auf dem jeweiligen System benötigten Audio-/Sprachkomponenten.
 
-Die aktuelle Programmdatei ist eine Python-Anwendung.
-
-Benötigte externe Python-Pakete:
-
-```text
-requests
-SpeechRecognition
-RapidFuzz
-opencv-python
-Pillow
-```
-
-Installation:
+Zum Start aus dem Quellcode:
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
+python3 Sprachassistent.py
 ```
 
-Eine konkrete Mindestversion von Python wird im Programmcode nicht ausdrücklich geprüft.
+Der Desktop-Starter kann mit `install_desktop_launcher.sh` eingerichtet werden.
 
-## Start
+## Persönliche Speicherorte
+- **Gespeicherte Fragen und Antworten:** `~/.local/share/Sprachassistent/fragen_antworten.db`
+- **Erinnerungen und Termine:** `~/.local/share/Sprachassistent/erinnerungen.json`
+- **Einstellungen:** `~/.config/Sprachassistent/config.ini`
 
-Nach der Installation der Abhängigkeiten:
-
-```bash
-python Sprachassistent.py
-```
-
-Du kannst auch eine Desktop Verknüpfung erstellen.
-
-```bash
-chmod +x install_desktop_launcher.sh
-./install_desktop_launcher.sh
-```
+Die Anwendung verwendet `XDG_DATA_HOME` bzw. `XDG_CONFIG_HOME`, falls diese Umgebungsvariablen gesetzt sind. Vorhandene Datenbank-, Einstellungs- und Erinnerungsdateien aus dem bisherigen Startverzeichnis werden übernommen, sofern am neuen Speicherort noch keine entsprechende Datei existiert. Persönliche Daten liegen damit getrennt vom Programmverzeichnis und bleiben bei Programmupdates erhalten.
 
 ## Manuelle Websuche
+Über **„Websuche starten“** wird die manuelle Websuche gestartet. Der Assistent fragt nach dem Suchbegriff und verwendet die nächste gesprochene Eingabe als Suchfrage.
 
-Mit **„Websuche starten“** wird die manuelle Websuche gestartet.
+## Abhängigkeiten
+Die Python-Abhängigkeiten sind in `requirements.txt` aufgeführt. Für die Sprach- und Audiofunktionen können zusätzlich Systempakete erforderlich sein; deren Verfügbarkeit hängt von Betriebssystem und Distribution ab.
 
-Ablauf:
-
-1. „Websuche starten“
-2. Der Assistent fragt: „Was möchtest du suchen?“
-3. Die nächste gesprochene Eingabe wird als vollständige Suchfrage verwendet.
-4. Wenn ein Satz die Frage ausreichend beantwortet, wird die Antwort kurz gehalten.
-5. Falls mehr Erklärung nötig ist, können mehrere passende Sätze verwendet werden.
-6. Die Antwort kann anschließend gespeichert werden.
-
-Die automatische Websuche bleibt davon getrennt.
-
-## Plattformhinweis
-
-Der aktuelle Quellcode enthält einen direkten Import von `fcntl`. `fcntl` ist nicht Bestandteil der normalen Windows-Python-Umgebung. Daher sollte die aktuelle Datei vor einer Windows-Veröffentlichung noch auf Plattformkompatibilität geprüft werden.
-
-**Version 5.2 – By Goldisoft 2026**
+**Version 5.3 – By Goldisoft 2026**

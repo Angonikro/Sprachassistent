@@ -40,8 +40,30 @@ from pathlib import Path
 # KONFIGURATION
 # ============================================================
 
-DB_FILE = "fragen_antworten.db"
-CONFIG_MAIN = "config.ini"
+# Benutzerdateien werden getrennt von den installierten Programmdateien gespeichert.
+# XDG-konforme Pfade: Daten unter ~/.local/share, Einstellungen unter ~/.config.
+USER_HOME = Path.home()
+DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", USER_HOME / ".local" / "share")) / "Sprachassistent"
+CONFIG_DIR = Path(os.environ.get("XDG_CONFIG_HOME", USER_HOME / ".config")) / "Sprachassistent"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+DB_FILE = str(DATA_DIR / "fragen_antworten.db")
+CONFIG_MAIN = str(CONFIG_DIR / "config.ini")
+REMINDERS_FILE = str(DATA_DIR / "erinnerungen.json")
+
+# Vorhandene Dateien aus älteren Versionen nach Möglichkeit übernehmen.
+for _old, _new in (
+    (Path.cwd() / "fragen_antworten.db", Path(DB_FILE)),
+    (Path.cwd() / "config.ini", Path(CONFIG_MAIN)),
+    (Path.cwd() / "erinnerungen.json", Path(REMINDERS_FILE)),
+    (Path(__file__).resolve().parent / "erinnerungen.json", Path(REMINDERS_FILE)),
+):
+    try:
+        if _old != _new and _old.is_file() and not _new.exists():
+            shutil.copy2(_old, _new)
+    except OSError:
+        pass
 
 
 
@@ -2587,7 +2609,7 @@ class AssistantApp:
         self._resume_after_vlc = False
 
         # Terminplaner – bewusst getrennt von Datenbank und übrigen Funktionen
-        self.reminders_file = str(Path(__file__).resolve().parent / "erinnerungen.json")
+        self.reminders_file = REMINDERS_FILE
         self.reminders = []
         self._termin_mode = None
         self._termin_pending_date = None
@@ -3470,7 +3492,7 @@ class AssistantApp:
 
         tk.Label(
             win,
-            text="Version 5.2",
+            text="Version 5.3",
             font=("TkDefaultFont", 16, "bold"),
             bg=current_theme["bg"],
             fg=current_theme["fg"]
