@@ -2,6 +2,10 @@
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
+![Sprachassistent](sprachassistent.png)
+
+[Github Seite](https://github.com/Angonikro/Sprachassistent/)
+
 ## Funktionen
 - Sprachsteuerung und Sprachausgabe
 - Chat-/Antwortfenster und gespeicherte Fragen/Antworten
