@@ -8,7 +8,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROGRAM="$SCRIPT_DIR/Sprachassistent_finale.py"
+PROGRAM="$SCRIPT_DIR/Sprachassistent.py"
 
 # Desktop-Ordner automatisch ermitteln
 if command -v xdg-user-dir >/dev/null 2>&1; then
