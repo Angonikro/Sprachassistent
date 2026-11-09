@@ -11,7 +11,10 @@ import json
 import threading
 import datetime
 import requests
-import speech_recognition as sr
+try:
+    import speech_recognition as sr
+except ImportError:
+    sr = None  # Optional: Debian 13 provides no python3-speechrecognition package.
 import subprocess
 from rapidfuzz import fuzz
 import random
@@ -2586,7 +2589,7 @@ class AssistantApp:
             self.on_exit
         )
 
-        self.recognizer = sr.Recognizer()
+        self.recognizer = sr.Recognizer() if sr is not None else None
 
         self.microphone_index = None
 
@@ -3492,7 +3495,7 @@ class AssistantApp:
 
         tk.Label(
             win,
-            text="Version 5.3",
+            text="Version 5.3.1",
             font=("TkDefaultFont", 16, "bold"),
             bg=current_theme["bg"],
             fg=current_theme["fg"]
@@ -4460,6 +4463,10 @@ class AssistantApp:
 
     def update_mic_list(self):
 
+        if sr is None:
+            self.mic_combo["values"] = []
+            return
+
         try:
 
             names = sr.Microphone.list_microphone_names()
@@ -4856,6 +4863,15 @@ class AssistantApp:
 
 
     def start_listening(self):
+
+        if sr is None:
+            messagebox.showwarning(
+                "Spracherkennung nicht installiert",
+                "Die Spracherkennung ist in Debian 13 nicht als APT-Paket verfügbar.\n\n"
+                "Installiere sie bei Bedarf mit: python3 -m pip install --user SpeechRecognition\n"
+                "Alternativ nutze die virtuelle Umgebung aus der README."
+            )
+            return
 
         # Ein automatischer Neustart darf einen manuellen STOPP nicht übergehen.
         if getattr(self, "_manual_stop_latched", False):

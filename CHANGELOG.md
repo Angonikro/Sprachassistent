@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 5.3.1
+- Versionsnummer in der Anwendung, README und Paketmetadaten auf 5.3.1 angehoben.
+- Abhängigkeiten PyAudio hinzugefügt, für Spracherkennung und Mikrofoneingabe bleiben vollständig dokumentiert und im DEB berücksichtigt.
+- Keine funktionalen Änderungen gegenüber Version 5.3.
+
 ## Version 5.3
 - GitHub-Paket und Dokumentation auf Version 5.3 aktualisiert.
 - Versionsanzeige im Programm auf 5.3 aktualisiert.

@@ -1,5 +1,6 @@
 requests
 SpeechRecognition
+PyAudio
 RapidFuzz
 opencv-python
 Pillow
