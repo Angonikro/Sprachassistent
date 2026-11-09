@@ -2,6 +2,10 @@
 
 Deutschsprachiger Sprachassistent von Goldisoft.
 
+![Sprachassistent](sprachassistent.png)
+
+[Github Seite](https://github.com/Angonikro/Sprachassistent/)
+
 ## Funktionen
 - Sprachsteuerung und Sprachausgabe
 - Chat-/Antwortfenster und gespeicherte Fragen/Antworten
@@ -75,3 +79,5 @@ Der Desktop-Starter kann mit `install_desktop_launcher.sh` eingerichtet werden.
 Die Python-Abhängigkeiten sind in `requirements.txt` aufgeführt. Für die Sprach- und Audiofunktionen können zusätzlich Systempakete erforderlich sein; deren Verfügbarkeit hängt von Betriebssystem und Distribution ab.
 
 **Version 5.3.1 – By Goldisoft 2026**
+
+73 de DO2QG Andreas
