@@ -34,6 +34,32 @@ import re
 from pathlib import Path
 
 
+def get_installed_mbrola_voices():
+    """Return all installed MBROLA databases as eSpeak-NG voice names."""
+    voices = []
+    voice_root = Path("/usr/share/mbrola")
+    try:
+        for entry in voice_root.iterdir():
+            code = entry.name.lower()
+            # MBROLA database IDs consist of a language/variant code and digits.
+            if not re.fullmatch(r"[a-z]{2,3}\d+", code):
+                continue
+            voice_file = entry if entry.is_file() else entry / code
+            if voice_file.is_file():
+                voices.append("mb-" + code)
+    except OSError:
+        pass
+    return sorted(set(voices))
+
+
+def get_installed_english_mbrola_voices():
+    """Return installed English MBROLA voices (British and US variants)."""
+    return [voice for voice in get_installed_mbrola_voices()
+            if re.fullmatch(r"mb-(?:en|us)\d+", voice)]
+
+
+
+
 # ============================================================
 # RECHTSCHREIBPRÜFUNG
 # ============================================================
@@ -501,6 +527,8 @@ Zur Fälligkeit:
 """
 
 
+HELP_TEXT_EN = '\nVOICE ASSISTANT – COMPLETE USER GUIDE\n\nThis guide describes the current feature set, including voice control, spoken\nannouncements, appointment planner, face features, music/radio, questions and\nanswers, backups, autoplay and settings.\n\n1. MICROPHONE / RECORDING\n• START – Start voice recording.\n• STOP – Stop voice recording.\n• Recording is paused while a spoken announcement is playing.\n• After an announcement, the previous microphone state is restored.\n\n2. TIME\nCommands:\n• “Time”\n• “What time is it?”\n• “What is the time?”\nAnnouncement: “It is HH:MM:SS.”\n\n3. DATE\nCommands:\n• “Date”\n• “What is today’s date?”\nAnnouncement: “Today is DD.MM.YYYY.”\n\n4. DAY OF THE WEEK\nCommands:\n• “Day of the week”\n• “What day is it today?”\nAnnouncement: “Today is [weekday].”\n\n5. WEATHER\nCommands:\n• “Weather”\n• “What is the weather like?”\nThe assistant retrieves current weather data and reads it aloud.\nAn automatic weather announcement every 30 minutes can also be enabled.\n\n6. LOTTERY 6 OUT OF 49\nCommands:\n• “Lottery”\n• “Lottery numbers”\n• “Winning numbers”\n• “Lottery results”\n• “6 out of 49”\nIf the online request succeeds, the draw date, six winning numbers and\nsupplementary number are announced. If the request fails, no numbers are made up.\n\n7. BROWSER\nCommand:\n• “Open browser”\nAnnouncement: “I’m opening your browser.”\nGoogle is then opened.\n\n8. WEB PAGES\nExamples:\n• “Open www.google.com”\n• “Open google.com”\n• “Open a page www.example.com”\n• “Open example.com”\nThe documented address handling supports .de, .com, .net and .org, as well\nas “www.”.\nAnnouncement: “I’m opening [address].”\nIf no address is recognized: “Which website should I open?”\n\n9. YOUTUBE\nExamples:\n• “YouTube”\n• “Play music on YouTube”\n• “Play [title] on YouTube”\n• “Search for [term] on YouTube”\n• “Open YouTube”\nWith a search term: “I’m searching YouTube for [search term].”\nWithout one: “What should I search for on YouTube?”\n\n10. YOUTUBE MUSIC\nCommands:\n• “YouTube Music”\n• “Open YouTube Music”\nAnnouncement: “I’m opening YouTube Music.”\n\n11. LOCAL MUSIC\nCommands:\n• “Play music”\n• “Play a song”\n• “Play a track”\n• “Play [title]”\n• “Play the song [title]”\nThe assistant searches the configured music folder. If no title is specified,\nlocal music playback starts.\n\n12. INTERNET RADIO\nCommands:\n• “Radio”\n• “Internet radio”\nAnnouncement: “I’m starting your radio.”\n\n13. APPLICATIONS\nCommands:\n• “Open [application name]”\n• “Start [application name]”\nApplications must first be saved in the “Applications” section.\nFor an unknown application: “I don’t know this application yet.”\n\n14. QUESTIONS & ANSWERS\n• Saved questions can be asked normally.\n• Exact matches use the saved answer.\n• Similar questions can also be recognized.\n• Multiple answers may exist; one is selected.\n• New questions and answers can be saved, edited and deleted.\n• If no local answer is found, automatic web search can be used as a fallback.\n\n14a. MANUAL WEB SEARCH\nStart commands:\n• “Web search”\n• “Start web search”\n• “Start a web search”\n• “Search the web”\n\nAfter starting, the assistant asks:\n“What would you like to search for?”\n\nYour next spoken input is used as the complete search question. Manual web\nsearch looks for a direct answer to that exact question.\n\n• If one sentence fully answers the question, only that sentence is displayed\n  and read aloud.\n• If one sentence is not sufficient, up to three relevant sentences may be used.\n• The answer can then be saved in the answer window.\n• Normal automatic web search remains separate and unchanged.\n\nExample:\n“Start web search”\n→ “What would you like to search for?”\n→ “How old is Bad Driburg?”\n→ a short, direct answer to the question.\n\n15. APPOINTMENT PLANNER / REMINDERS\nStart commands:\n• “Appointment”\n• “Appointment schedule”\n• “Planner”\n• “Reminder planner”\n\nAfter starting, the assistant asks:\n“For which date should I remind you?”\n\nRecognized date examples include:\n• “today”\n• “tomorrow”\n• “the day after tomorrow”\n• “02.09.2026”\n• “2 September 2026”\n\nThe assistant then asks for the time.\n\nRecognized time examples include:\n• “4 o’clock”\n• “four o’clock”\n• “6 PM”\n• “18:30”\n• “18.30”\n• “1830”\n• “half past six” and other recognized “half past” forms\n\nThe assistant then asks:\n“And what should I remind you about?”\n\nAfter you describe the reminder, a confirmation appears and the assistant says:\n“I have entered [today/tomorrow] at HH:MM: [item].\nIs everything correct?”\n\nButtons:\n• “YES – SAVE”\n• “CANCEL”\n\nAfter saving:\n“All right. I’ll remind you at HH:MM: [item].”\n\nWhen cancelled:\n“The appointment was not saved.”\n\nWhen the appointment is due:\n“Reminder: You wanted [item].”\n\nVoice cancellation commands:\n• “Cancel”\n• “Stop”\n• “Never mind”\nAnnouncement: “Appointment planning cancelled.”\n\n16. APPOINTMENT MANAGEMENT\nThe appointment manager allows you to:\n• Add appointments\n• Edit appointments\n• Delete appointments\n• View appointments\n• Use “SHOW ON/OFF”\n• Reactivate old/completed appointments\n\nExpired appointments are NOT deleted automatically. They remain in the\nappointment manager.\n\nStatuses:\n• ACTIVE – future active appointment\n• OFF – appointment disabled\n• EXPIRED – scheduled time has passed\n• DONE – reminder has already been announced\n\nAn old or completed appointment can be reactivated with one click using\n“SHOW ON/OFF”. The next suitable time is used. When editing, you can also\nselect “Show appointment / reminder active (reactivate old appointments)”.\n\n17. DASHBOARD BELL\n• The bell appears only when there is a future appointment set to be shown.\n• Clicking the bell opens appointment management.\n• Hidden appointments do not trigger the bell.\n\n18. AUTOPLAY\nUnder “Autoplay”:\n• “Announce time every hour”\n• “Announce weather every 30 minutes”\n• “Automatic questions”\nAutomatic-question intervals:\n• 5, 6, 7, 8, 9 or 10 minutes\n• “Off”\n\n19. AUDIO / VOICE\nUnder “Audio / Voice”:\n• MBROLA voice\n• Speed\n• Pitch\n• Volume\nThe interface provides voices mb-de1 through mb-de8.\nTest announcement:\n“This is a test of the current voice.”\n\n20. AUDIO DRIVERS\nUnder “Settings → Audio driver”:\n• windows – native Windows audio output\n• pulse\n• alsa\n• sdl\n• oss\n• jack\n• portaudio\nOn Windows, speech output uses Windows Speech/audio output.\nFor VLC, selecting “windows” uses Windows audio output.\nThe audio system is restarted after saving.\n\n21. MUSIC FOLDER\nOn the Music page:\n• Choose folder\n• Play music\n• Search for tracks\nThe music path is saved.\n\n22. SAVE FACE / TAKE PHOTO\nCommands:\n• “Remember my face”\n• “Remember what I look like”\n• “Take a photo of me”\n• “Take a picture of me”\n• “Photograph me”\n• “Take my picture”\n\nTypical announcements:\n• “What is your name?”\n• “Okay, I will not save a face.”\n• “The name is not valid.”\n• “Please look at the camera for [name].”\n• “All right. I’ll remember your face as [name].”\n\n23. FACE RECOGNITION\nCommands:\n• “Who am I?”\n• “Do you know who I am?”\nTypical announcements:\n• “I don’t have a saved face yet.”\n• “Yes. You are [name].”\n• “I don’t recognize you among my saved faces.”\n\n24. MANAGE FACES\nUnder “Settings → Manage face recognition”:\n• View saved people\n• Preview images\n• Add a person\n• Replace a photo\n• Rename\n• Delete\n• Refresh\nDeleting a person requires confirmation.\n\n25. CAMERA\nOn the Camera page, select the detected camera.\nThe selection is saved and used by the face features.\n\n26. MICROPHONE AFTER FACE FEATURES\nDuring photo capture and face recognition, normal listening is temporarily\npaused. Listening resumes according to the state that was active before\nthe operation.\n\n27. BACKUP SYSTEM\nUnder “Backup” / “Backup system”:\n• Run backup now\n• Open backup folder\n• Enable/disable automatic backups\n• Change backup name\n• Restore a backup\n\nRestore procedure:\n1. Select a backup.\n2. Start restoration.\n3. Confirm the safety prompt.\n4. The backup is checked.\n5. The current state is saved as a safety backup.\n6. The selected backup is restored.\n7. Questions and answers are reloaded.\n\n28. DATABASE EXPORT / IMPORT\nUnder “File”:\n• Export database\n• Import database\n• Exit\n\n29. THEMES / INTERFACE\nUnder “Theme”:\n• Dark\n• Light\n• Gruvbox\nNavigation and the interface adapt to the selected theme.\n\n30. NAVIGATION\nThe main navigation contains:\n• Dashboard\n• Questions & Answers\n• Music\n• Appointments\n• Backup\n• Settings\n• Applications\n• Help\nThe currently selected section is highlighted.\n\n31. HELP\nUse “Help → Show guide” to open this guide directly in the application.\nThe PDF guide and the integrated help describe the same feature set.\n\n32. IMPORTANT SHORTCUTS\n• “Time”\n• “Date”\n• “Day of the week”\n• “Weather”\n• “Lottery numbers”\n• “Open browser”\n• “Open google.com”\n• “YouTube”\n• “YouTube Music”\n• “Play music”\n• “Play [title]”\n• “Radio”\n• “Internet radio”\n• “Open [application name]”\n• “Start [application name]”\n• “Appointment”\n• “Planner”\n• “Who am I?”\n• “Remember my face”\n\n33. COMPLETE APPOINTMENT PLANNER EXAMPLE\nUser: “Appointment”\nAssistant: “When should I remind you?”\nUser: “4 o’clock”\nAssistant: “And what should I remind you about?”\nUser: “My doctor’s appointment.”\nAssistant: “I have entered today at 04:00: My doctor’s appointment.\nIs everything correct?”\nThe user presses “YES – SAVE”.\nAssistant: “All right. I’ll remind you at 04:00: My doctor’s appointment.”\nWhen due:\n“Reminder: You wanted your doctor’s appointment.”\n\n34. IMPORTANT NOTES\n• Appointments are not deleted just because their scheduled time has passed.\n• A reminder is marked as completed after it has been announced.\n• Hidden appointments remain saved.\n• Old appointments can be reactivated.\n• The bell shows only future appointments set to be shown.\n• Only “DELETE” permanently removes an appointment.\n• Lottery and weather values are not invented if the online request fails.\n'
+
 # ============================================================
 # THEMES
 # ============================================================
@@ -661,6 +689,7 @@ def load_main_config():
             "programs": {},
             "auto_backup": True,
             "backup_name": "assistant",
+            "language": "de",
         }
 
     try:
@@ -741,6 +770,8 @@ def load_main_config():
                 fallback="assistant"
             ),
 
+            "language": config.get("general", "language", fallback="de"),
+
         }
 
     except Exception as e:
@@ -759,6 +790,7 @@ def load_main_config():
             "programs": {},
             "auto_backup": True,
             "backup_name": "assistant",
+            "language": "de",
         }
 
 
@@ -1169,6 +1201,10 @@ def speech_worker():
             break
 
         text, voice, speed, pitch, volume = item
+
+        # Die ausgewählte MBROLA-Stimme bestimmt die Ausgabesprache.
+        # Keine automatische Ersetzung anhand der UI-Sprache: Auch installierte
+        # Stimmen anderer Sprachen müssen ausdrücklich auswählbar bleiben.
 
         if not text:
             speech_queue.task_done()
@@ -2577,7 +2613,7 @@ class AssistantApp:
         self.root = root
 
         self.root.title(
-            "Sprachassistent"
+            "Voice Assistant" if getattr(self, "language", "de") == "en" else "Sprachassistent"
         )
 
         self.root.geometry(
@@ -2662,11 +2698,17 @@ class AssistantApp:
         self.backup_name = tk.StringVar(
             value=cfg["backup_name"]
         )
-
+        self.language = cfg.get("language", "de")
+        self.root.title("Voice Assistant" if self.language == "en" else "Sprachassistent")
+        self._install_messagebox_translation()
 
         self.create_menu()
 
         self.create_main_layout()
+        self.root.after(700, self._translation_watchdog)
+        if self.language == "en":
+            self.root.after(300, self._translate_widget_tree)
+            self.root.after(350, self._translate_menus)
         self._termin_update_dashboard_indicator()
         self.root.after(1000, self._check_reminders)
 
@@ -2736,6 +2778,322 @@ class AssistantApp:
         ):
             self.schedule_autoplay()
 
+
+    def _ui_translation_map(self):
+        return {
+            "Datei": "File", "Theme": "Theme", "Dunkel": "Dark", "Hell": "Light",
+            "Programme": "Applications", "Programme verwalten": "Manage applications",
+            "Einstellungen": "Settings", "Gesichtserkennung verwalten": "Manage face recognition",
+            "Backup jetzt ausführen": "Run backup now", "Backup-Ordner öffnen": "Open backup folder",
+            "Automatische Backups aktiv": "Automatic backups enabled", "Backup-System": "Backup system",
+            "Backup-Namen ändern": "Change backup name", "Musik Pfad": "Music folder",
+            "Sound-Treiber": "Audio driver", "Audio / Stimme": "Audio / Voice",
+            "Audio / Stimme einstellen": "Configure audio / voice",
+            "Uhrzeit jede volle Stunde": "Announce time every hour",
+            "Wetter jede halbe Stunde": "Announce weather every 30 minutes",
+            "Auto-Fragen Intervall:": "Automatic question interval:",
+            "Aus": "Off", "Beenden": "Exit", "Datenbank exportieren": "Export database",
+            "Datenbank importieren": "Import database", "Autoplay": "Autoplay",
+            "Hilfe": "Help", "Anleitung": "User guide", "Schließen": "Close",
+            "Startseite": "Home", "Persönliches Sprach-Dashboard": "Personal voice dashboard",
+            "SPRACHASSISTENT": "VOICE ASSISTANT", "Sprachassistent": "Voice Assistant",
+            "SPRACHSTEUERUNG": "VOICE CONTROL", "Starte die Aufnahme und sprich deinen Befehl.": "Start recording and speak your command.",
+            "STARTEN": "START", "STOPP": "STOP", "MIKROFON & AUDIO": "MICROPHONE & AUDIO",
+            "Live-Pegel und Aktivitätsanzeige": "Live level and activity display",
+            "FRAGEN & ANTWORTEN": "QUESTIONS & ANSWERS", "Das Wissen deines Assistenten verwalten": "Manage your assistant's knowledge",
+            "Suche": "Search", "Suchen": "Search", "Alle": "All", "Frage:": "Question:",
+            "Antwort 1:": "Answer 1:", "Antwort 2:": "Answer 2:", "Antwort 3:": "Answer 3:",
+            "+ Neu": "+ New", "＋ Neu": "＋ New", "＋ New": "＋ New",
+            "✓ Speichern": "✓ Save", "Löschen": "Delete",
+            "MENÜ": "MENU", "SYSTEMSTATUS": "SYSTEM STATUS", "MIKROFON": "MICROPHONE",
+            "BEREIT": "READY", "SPRICHT": "SPEAKING", "MUSIK": "MUSIC", "BACKUP": "BACKUP",
+            "TERMINE": "APPOINTMENTS", "Einstellungen": "Settings", "Fragen & Antworten": "Questions & Answers",
+            "Audio / Stimme": "Audio / Voice", "Musik": "Music", "Backup": "Backup",
+            "Termine": "Appointments", "Hilfe": "Help", "Öffnen": "Open",
+            "Musikordner": "Music folder", "Ordner auswählen": "Choose folder",
+            "Musik starten": "Play music", "Titel suchen": "Search track",
+            "Lokale Musik abspielen und Musikordner verwalten": "Play local music and manage your music folder",
+            "Sicherungen der Datenbank verwalten": "Manage database backups",
+            "Backup-System": "Backup system", "Backup-Name:": "Backup name:",
+            "Backup jetzt erstellen": "Create backup now", "Backup wiederherstellen": "Restore backup",
+            "Vorhandene Backups:": "Existing backups:",
+            "Allgemeine Einstellungen des Sprachassistenten": "General voice assistant settings",
+            "Stimme:": "Voice:", "Tonhöhe": "Pitch", "Lautstärke": "Volume",
+            "Aktuell:": "Current:", "SPRACHE / LANGUAGE": "LANGUAGE",
+            "Gespeichert": "Saved", "Fehler": "Error", "Name:": "Name:", "Pfad:": "Path:",
+            "Name und Pfad dürfen nicht leer sein.": "Name and path must not be empty.",
+            "Speichern / Aktualisieren": "Save / Update", "Programm nicht gefunden.": "Application not found.",
+            "Gespeicherte Programme:": "Saved applications:", "Gelöscht": "Deleted",
+            "wurde entfernt.": "was removed.", "Startseite ist aktiv.": "Home page is active.",
+            "Fragen & Antworten geöffnet.": "Questions & Answers opened.",
+            "Anleitung anzeigen": "Show user guide", "Musikordner verwalten": "Manage music folder",
+            "Wetter abfrage": "Weather query", "Lottozahlen abfragen": "Check lottery numbers",
+            "Dashboard": "Dashboard", "Antworten": "Answers", "Abbrechen": "Cancel",
+            "Ja": "Yes", "Nein": "No", "OK": "OK", "Übernehmen": "Apply",
+            "Wiederherstellen": "Restore", "Durchsuchen": "Browse", "Aktualisieren": "Refresh",
+            "Gesicht speichern": "Save face", "Gesicht erkennen": "Recognize face",
+            "Kamera": "Camera", "Mikrofon": "Microphone", "Stimme": "Voice",
+            "Geschwindigkeit": "Speed", "Lautstärke": "Volume", "Tonhöhe": "Pitch",
+            "Automatische Fragen": "Automatic questions", "Wetter": "Weather",
+            "Uhrzeit": "Time", "Datum": "Date", "Wochentag": "Day of the week",
+            "UHRZEIT": "TIME", "GESPEICHERTE FRAGEN": "SAVED QUESTIONS",
+            "ASSISTENT": "ASSISTANT", "GESPRÄCH": "CONVERSATION",
+            "Deine Unterhaltung mit ALI": "Your conversation with ALI",
+            "Bereit für deinen nächsten Befehl": "Ready for your next command",
+            "Gespräch gestartet. Ich bin bereit.": "Conversation started. I am ready.",
+            "Gespräch beendet.": "Conversation ended.",
+            "Startseite ist aktiv.": "Home page is active.",
+            "FTS5 TURBO-SUCHE AKTIV": "FTS5 TURBO SEARCH ACTIVE",
+            "FTS5 NICHT VERFÜGBAR – STANDARDSUCHE": "FTS5 UNAVAILABLE – STANDARD SEARCH",
+            "Persönliches Sprach-Dashboard": "Personal voice dashboard",
+            "SPRACHASSISTENT": "VOICE ASSISTANT",
+            "Datenbank exportieren": "Export database", "Datenbank importieren": "Import database",
+            "Gesichtserkennung verwalten": "Manage face recognition", "Sound-Treiber auswählen": "Select audio driver",
+            "Sound-Treiber gesetzt auf: ": "Audio driver set to: ", "Sound-Treiber für VLC:": "Audio driver for VLC:",
+            "Musikordner auswählen": "Select music folder", "Neuer Musikordner: ": "New music folder: ",
+            "Musikordner gespeichert.": "Music folder saved.", "Audio-Einstellungen gespeichert.": "Audio settings saved.",
+            "Stimme (MBROLA):": "Voice (MBROLA):", "de1–de7: Deutsch": "de1–de7: German",
+            "de8: Bayerisch": "de8: Bavarian",
+            "de1–de7: Deutsch | de8: Bayerisch | en1: English": "de1–de7: German | de8: Bavarian | en1: English", "Geschwindigkeit:": "Speed:", "Tonhöhe:": "Pitch:",
+            "Lautstärke:": "Volume:", "Dies ist ein Test der aktuellen Stimme.": "This is a test of the current voice.",
+            "Bitte gültige Zahlen eingeben.": "Please enter valid numbers.", "Test": "Test",
+            "Speichern": "Save", "Abbrechen": "Cancel", "Name darf nicht leer sein.": "Name must not be empty.",
+            "Backup-Name gesetzt: ": "Backup name set to: ", "Backup-Dateiname:": "Backup filename:",
+            "Datenbank existiert noch nicht.": "The database does not exist yet.",
+            "Datenbank erfolgreich exportiert.": "Database exported successfully.",
+            "Export fehlgeschlagen: ": "Export failed: ", "Datenbank erfolgreich importiert.": "Database imported successfully.",
+            "Import fehlgeschlagen: ": "Import failed: ", "Backup wurde erfolgreich erstellt.": "Backup created successfully.",
+            "Backup konnte nicht erstellt werden.": "Could not create backup.",
+            "OpenCV ist nicht installiert.": "OpenCV is not installed.",
+            "Bitte schaue kurz in die Kamera.": "Please look at the camera briefly.",
+            "Ich konnte in der Kamera kein Gesicht erkennen.": "I could not detect a face in the camera.",
+            "Die Kamera ": "The camera ", " konnte nicht geöffnet werden.": " could not be opened.",
+            "Gesichtserkennung verwalten": "Manage face recognition", "Gespeicherte Gesichter": "Saved faces",
+            "Keine Person ausgewählt": "No person selected", "Bildvorschau": "Image preview",
+            "Bitte zuerst eine Person auswählen.": "Please select a person first.",
+            "Name ändern": "Rename", "Neuer Name:": "New name:", "Gesicht löschen": "Delete face",
+            "Person hinzufügen": "Add person", "Foto ersetzen": "Replace photo", "Aktualisieren": "Refresh",
+            "Bild konnte nicht gelesen werden.": "Could not read image.",
+            "Das Foto konnte nicht aufgenommen werden.": "The photo could not be captured.",
+            "Das Bild konnte nicht geschrieben werden.": "The image could not be written.",
+            "Das Bild konnte nicht gelöscht werden: ": "Could not delete image: ",
+            "Neues Foto konnte nicht gespeichert werden: ": "Could not save new photo: ",
+            "Bild nicht verfügbar": "Image unavailable", "Bitte schaue in die Kamera": "Please look at the camera",
+            "Gesicht erkannt - Foto wird aufgenommen": "Face detected - capturing photo",
+            "Die Fotoaufnahme wurde abgebrochen.": "Photo capture was cancelled.",
+            "Wie heißt du?": "What is your name?", "Gesicht merken": "Remember face",
+            "Okay, ich speichere kein Gesicht.": "Okay, I will not save a face.",
+            "Der Name ist nicht gültig.": "The name is not valid.",
+            "Das Gesicht konnte nicht gespeichert werden.": "The face could not be saved.",
+            "Alles klar. Ich merke mir dein Gesicht als ": "All right. I will remember your face as ",
+            "Ich erkenne dich nicht in meinen gespeicherten Gesichtern.": "I do not recognize you among my saved faces.",
+            "Gesicht unbekannt": "Unknown face", "Ich kenne dieses Gesicht noch nicht. Soll ich ein Foto speichern?": "I do not know this face yet. Should I save a photo?",
+            "Ich habe noch kein gespeichertes Gesicht.": "I do not have a saved face yet.",
+            "Die gespeicherten Gesichtsbilder konnten nicht gelesen werden.": "The saved face images could not be read.",
+            "Terminverwaltung": "Appointment manager", "Termine anzeigen, bearbeiten, hinzufügen und löschen": "View, edit, add and delete appointments",
+            "Termin bearbeiten": "Edit appointment", "Termin hinzufügen": "Add appointment",
+            "Diesen Termin wirklich löschen?": "Are you sure you want to delete this appointment?",
+            "Bitte zuerst einen Termin auswählen.": "Please select an appointment first.",
+            "Bitte ein gültiges Datum, eine Uhrzeit und eine Erinnerung eingeben.": "Please enter a valid date, time and reminder.",
+            "Der gewählte Zeitpunkt liegt bereits in der Vergangenheit.": "The selected time is in the past.",
+            "TERMIN HINZUFÜGEN": "ADD APPOINTMENT", "BEARBEITEN": "EDIT",
+            "ANZEIGEN AN/AUS": "SHOW ON/OFF", "LÖSCHEN": "DELETE", "SCHLIESSEN": "CLOSE",
+            "Datum (z. B. 02.09.2026):": "Date (e.g. 02/09/2026):", "Uhrzeit (z. B. 18:30):": "Time (e.g. 18:30):",
+            "Woran soll ich erinnern?": "What should I remind you about?",
+            "Termin anzeigen / Erinnerung aktiv (alte Termine reaktivieren)": "Show appointment / reminder active (reactivate old appointments)",
+            "SPEICHERN": "SAVE", "ABBRECHEN": "CANCEL", "WEITER": "CONTINUE",
+            "TERMIN ÜBERPRÜFEN": "REVIEW APPOINTMENT", "Ist alles richtig?": "Is everything correct?",
+            "JA – SPEICHERN": "YES – SAVE", "Erledigt": "Done", "ABGELAUFEN": "EXPIRED",
+            "AKTIV": "ACTIVE", "AUS": "OFF", "Backup wiederherstellen": "Restore backup",
+            "Bitte zuerst die Backup-Seite öffnen.": "Please open the Backup page first.",
+            "Bitte zuerst ein Backup auswählen.": "Please select a backup first.",
+            "Ungültige Backup-Datei.": "Invalid backup file.", "Das ausgewählte Backup existiert nicht mehr.": "The selected backup no longer exists.",
+            "Soll dieses Backup wirklich wiederhergestellt werden?": "Do you really want to restore this backup?",
+            "Ungültiges Backup": "Invalid backup", "Backup wiederhergestellt": "Backup restored",
+            "Wiederherstellung fehlgeschlagen": "Restore failed", "Die Tabelle 'qa' fehlt im Backup.": "The 'qa' table is missing from the backup.",
+            "Backup erfolgreich erstellt.": "Backup created successfully.", "Backup konnte nicht erstellt werden.": "Could not create backup.",
+            "Programme verwalten, speichern und starten": "Manage, save and launch applications",
+            "Programm gespeichert: ": "Application saved: ", "Programm nicht gefunden.": "Application not found.",
+            "Gespeicherte Programme:": "Saved applications:", "Name:": "Name:", "Pfad:": "Path:",
+            "Webantwort speichern": "Save web answer", "Neue Antworten eingeben": "Enter new answers",
+            "Antworten gespeichert.": "Answers saved.", "Eingabe abgebrochen.": "Input cancelled.",
+            "Okay, ich breche ab.": "Okay, I am cancelling.", "Antwort 1 darf nicht leer sein.": "Answer 1 cannot be empty.",
+            "Speicherfehler": "Save error", "Die Antworten konnten nicht gespeichert werden.": "The answers could not be saved.",
+            "Neue Antworten gespeichert: ": "New answers saved: ", "Antwort 2 (optional):": "Answer 2 (optional):",
+            "Antwort 3 (optional):": "Answer 3 (optional):", "Webantwort / Antwort 1:": "Web answer / Answer 1:",
+            "Antwort 1 (Pflichtfeld):": "Answer 1 (required):", "Frage: ": "Question: ",
+            "Frage und Antworten wurden gespeichert.": "Question and answers were saved.",
+            "Frage gelöscht.": "Question deleted.", "Mindestens Antwort 1 muss ausgefüllt sein.": "At least Answer 1 must be filled in.",
+            "Die Frage und Antworten konnten nicht in der Datenbank gespeichert werden.": "The question and answers could not be saved to the database.",
+            "Frage gespeichert: ": "Question saved: ", "Kein Mikrofon gefunden": "No microphone found",
+            "Ich höre dir zu …": "I am listening …", "Bereit für deinen nächsten Befehl": "Ready for your next command",
+            "Deine Unterhaltung mit ALI": "Your conversation with ALI", "GESPRÄCH": "CONVERSATION",
+            "Gespräch gestartet. Ich bin bereit.": "Conversation started. I am ready.",
+            "Gespräch beendet.": "Conversation ended.", "Du": "You", "ALI": "ALI",
+            "Bitte schaue für ": "Please look for ", " in die Kamera.": " into the camera.",
+            "Das Foto von ": "The photo of ", " wurde aktualisiert.": " was updated.",
+            "Gesichtserkennung konnte nicht gestartet werden: ": "Face recognition could not be started: ",
+            "Der Gesichtserkennungs-Klassifikator konnte nicht geladen werden.": "The face recognition classifier could not be loaded.",
+            "Die Datei für die Gesichtserkennung wurde nicht gefunden: ": "The face recognition file was not found: ",
+            "Für die Gesichtserkennung fehlt OpenCV.": "OpenCV is required for face recognition.",
+            "Für die Gesichtverwaltung fehlt OpenCV.": "OpenCV is required for face management.",
+            "Die Gesichtserkennung ist noch nicht vollständig installiert. Dafür wird die OpenCV-Contrib-Version benötigt.": "Face recognition is not fully installed yet. The OpenCV-Contrib version is required.",
+            "Die Gesichtserkennung ist auf diesem Raspberry Pi noch nicht vollständig verfügbar.": "Face recognition is not fully available on this Raspberry Pi yet.",
+            "Backup-Namen": "Backup name", "Musik Pfad": "Music path",
+            "Audio-Ausgabe für VLC auswählen": "Select audio output for VLC",
+            "Stimme, Geschwindigkeit, Tonhöhe und Lautstärke": "Voice, speed, pitch and volume",
+            "Bedienung und Funktionen": "Usage and features", "● HILFE": "● HELP",
+        }
+
+    def _install_messagebox_translation(self):
+        if getattr(messagebox, "_sprachassistent_i18n", False):
+            return
+        for function_name in ("showinfo", "showwarning", "showerror", "askyesno", "askokcancel", "askretrycancel"):
+            original = getattr(messagebox, function_name)
+            def make_wrapper(func):
+                def wrapped(*args, **kwargs):
+                    app = globals().get("APP_INSTANCE")
+                    if app is not None and getattr(app, "language", "de") == "en":
+                        mapping = app._ui_translation_map()
+                        args = tuple(app._translate_text(str(v)) if isinstance(v, str) else v for v in args)
+                        for key in ("title", "message", "detail"):
+                            if isinstance(kwargs.get(key), str):
+                                kwargs[key] = app._translate_text(kwargs[key])
+                    return func(*args, **kwargs)
+                return wrapped
+            setattr(messagebox, function_name, make_wrapper(original))
+        messagebox._sprachassistent_i18n = True
+
+    def _translate_text(self, value):
+        mapping = self._ui_translation_map()
+        translated = value
+        for de, en in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
+            translated = translated.replace(de, en)
+        return translated
+
+    def _translate_widget_tree(self, parent=None):
+        parent = parent or self.root
+        mapping = self._ui_translation_map()
+        english = getattr(self, "language", "de") == "en"
+        try:
+            children = parent.winfo_children()
+        except Exception:
+            children = []
+        for widget in children:
+            try:
+                if isinstance(widget, (tk.Label, tk.Button, ttk.Label, ttk.Button,
+                                       ttk.Checkbutton, tk.Checkbutton, tk.Radiobutton,
+                                       ttk.Radiobutton, tk.Menubutton)):
+                    value = widget.cget("text")
+                    if not hasattr(widget, "_sa_original_text"):
+                        widget._sa_original_text = value
+                    original = widget._sa_original_text
+                    if not english:
+                        widget.configure(text=original)
+                    elif original in mapping:
+                        widget.configure(text=mapping[original])
+                    elif original:
+                        translated = original
+                        for de, en in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
+                            translated = translated.replace(de, en)
+                        widget.configure(text=translated)
+                elif isinstance(widget, tk.Toplevel):
+                    title = widget.title()
+                    if title in mapping:
+                        widget.title(mapping[title])
+                elif isinstance(widget, tk.Text):
+                    content = widget.get("1.0", "end-1c")
+                    if not hasattr(widget, "_sa_original_content"):
+                        widget._sa_original_content = content
+                    original = widget._sa_original_content
+                    translated = original
+                    if english:
+                        for de, en in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
+                            translated = translated.replace(de, en)
+                    state = str(widget.cget("state"))
+                    if translated != content:
+                        widget.configure(state="normal")
+                        widget.delete("1.0", "end")
+                        widget.insert("1.0", translated)
+                        widget.configure(state=state)
+            except Exception:
+                pass
+            self._translate_widget_tree(widget)
+
+    def _translation_watchdog(self):
+        """Translate newly opened dialogs and dynamic labels while English is active."""
+        try:
+            if getattr(self, "language", "de") == "en":
+                self._translate_widget_tree()
+                self._translate_menus()
+        finally:
+            try:
+                if self.root.winfo_exists():
+                    self.root.after(700, self._translation_watchdog)
+            except Exception:
+                pass
+
+    def _translate_menus(self):
+        if getattr(self, "language", "de") != "en":
+            return
+        mapping = self._ui_translation_map()
+        try:
+            menubar = self.root.nametowidget(self.root.cget("menu"))
+        except Exception:
+            return
+        def walk(menu):
+            try:
+                end = menu.index("end")
+                if end is None:
+                    return
+                for index in range(end + 1):
+                    try:
+                        kind = menu.type(index)
+                        if kind == "cascade":
+                            label = menu.entrycget(index, "label")
+                            menu.entryconfigure(index, label=mapping.get(label, label))
+                            sub = menu.nametowidget(menu.entrycget(index, "menu"))
+                            walk(sub)
+                        elif kind in ("command", "checkbutton", "radiobutton"):
+                            label = menu.entrycget(index, "label")
+                            menu.entryconfigure(index, label=mapping.get(label, label))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        walk(menubar)
+
+    def change_language(self, _event=None):
+        self.language = "en" if self.language_var.get() == "English" else "de"
+        config = configparser.ConfigParser()
+        if os.path.exists(CONFIG_MAIN):
+            config.read(CONFIG_MAIN, encoding="utf-8")
+        if "general" not in config:
+            config["general"] = {}
+        config["general"]["language"] = self.language
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_MAIN, "w", encoding="utf-8") as handle:
+            config.write(handle)
+        self.root.title("Voice Assistant" if self.language == "en" else "Sprachassistent")
+        if self.language == "en":
+            labels = ["⌂   Home", "☷   Questions & Answers", "▣   Applications",
+                      "♫   Audio / Voice", "♪   Music", "◫   Backup",
+                      "⚙   Settings", "◷   Appointments", "?   Help"]
+        else:
+            labels = ["⌂   Startseite", "☷   Fragen & Antworten", "▣   Programme",
+                      "♫   Audio / Stimme", "♪   Musik", "◫   Backup",
+                      "⚙   Einstellungen", "◷   Termine", "?   Hilfe"]
+        for button, label in zip(getattr(self, "nav_buttons", []), labels):
+            button.config(text=label)
+        if hasattr(self, "language_combo"):
+            self.language_combo.set("English" if self.language == "en" else "Deutsch")
+        self.create_menu()
+        self._translate_menus()
+        self._translate_widget_tree()
+        self.root.title("Voice Assistant" if self.language == "en" else "Sprachassistent")
+        self.log("Language saved." if self.language == "en" else "Sprache gespeichert.")
+        self.root.after(250, self._translate_widget_tree)
+        self.root.after(300, self._translate_menus)
 
     # ========================================================
     # HAUPT-LAYOUT
@@ -2827,6 +3185,14 @@ class AssistantApp:
         nav_button("⚙   Einstellungen", self.show_settings_page)
         nav_button("◷   Termine", self.open_terminverwaltung)
         nav_button("?   Hilfe", self.open_help_window)
+
+        tk.Label(sidebar, text="SPRACHE / LANGUAGE", font=("TkDefaultFont", 8, "bold"),
+                 bg=th["bg2"], fg=th["muted"]).pack(anchor=tk.W, padx=18, pady=(12, 4))
+        self.language_var = tk.StringVar(value="Deutsch" if self.language == "de" else "English")
+        self.language_combo = ttk.Combobox(sidebar, textvariable=self.language_var,
+                                           state="readonly", values=["Deutsch", "English"])
+        self.language_combo.pack(fill=tk.X, padx=14, pady=(0, 8))
+        self.language_combo.bind("<<ComboboxSelected>>", self.change_language)
 
         tk.Frame(sidebar, bg=th["border"], height=1).pack(fill=tk.X, padx=18, pady=16)
         tk.Label(sidebar, text="SYSTEMSTATUS", font=("TkDefaultFont", 8, "bold"),
@@ -3067,7 +3433,7 @@ class AssistantApp:
             self.dashboard_panel.pack_forget()
             self.dashboard_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
             self.qa_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-            self.status_label.config(text="● BEREIT", fg=current_theme["green"])
+            self.status_label.config(text="● READY" if self.language == "en" else "● BEREIT", fg=current_theme["green"])
             self.log("Startseite ist aktiv.")
         except tk.TclError:
             pass
@@ -3078,7 +3444,7 @@ class AssistantApp:
             self.dashboard_panel.pack_forget()
             self.qa_panel.pack_forget()
             self.qa_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            self.status_label.config(text="● FRAGEN & ANTWORTEN", fg=current_theme["fg"])
+            self.status_label.config(text="● QUESTIONS & ANSWERS" if self.language == "en" else "● FRAGEN & ANTWORTEN", fg=current_theme["fg"])
             self.qa_search_entry.focus_set()
             if self.qa_listbox.size() > 0:
                 self.qa_listbox.selection_clear(0, tk.END)
@@ -3441,9 +3807,7 @@ class AssistantApp:
             self.root
         )
 
-        win.title(
-            "Anleitung"
-        )
+        win.title("User guide" if self.language == "en" else "Anleitung")
 
         win.geometry(
             "700x600"
@@ -3468,7 +3832,7 @@ class AssistantApp:
 
         text_widget.insert(
             tk.END,
-            HELP_TEXT
+            HELP_TEXT_EN if self.language == "en" else HELP_TEXT
         )
 
         text_widget.config(
@@ -3477,7 +3841,7 @@ class AssistantApp:
 
         ttk.Button(
             win,
-            text="Schließen",
+            text="Close" if self.language == "en" else "Schließen",
             command=win.destroy
         ).pack(
             pady=10
@@ -3495,7 +3859,7 @@ class AssistantApp:
 
         tk.Label(
             win,
-            text="Version 5.3.1",
+            text="Version 5.3.2",
             font=("TkDefaultFont", 16, "bold"),
             bg=current_theme["bg"],
             fg=current_theme["fg"]
@@ -3511,7 +3875,7 @@ class AssistantApp:
 
         ttk.Button(
             win,
-            text="Schließen",
+            text="Close" if self.language == "en" else "Schließen",
             command=win.destroy
         ).pack(pady=(14, 12))
 
@@ -3743,7 +4107,8 @@ class AssistantApp:
                 "mb-de5",
                 "mb-de6",
                 "mb-de7",
-                "mb-de8"
+                "mb-de8",
+                *get_installed_english_mbrola_voices()
             ]
         )
 
@@ -3756,7 +4121,7 @@ class AssistantApp:
 
         ttk.Label(
             frame,
-            text="de1–de7: Deutsch | de8: Bayerisch",
+            text="de1–de7: Deutsch | de8: Bayerisch | en1: English",
             font=("TkDefaultFont", 8)
         ).grid(
             row=0,
@@ -3856,8 +4221,11 @@ class AssistantApp:
         def test_voice():
 
             try:
+                test_text = ("This is a test of the current voice."
+                             if self.language == "en"
+                             else "Dies ist ein Test der aktuellen Stimme.")
                 speak_mbrola(
-                    "Dies ist ein Test der aktuellen Stimme.",
+                    test_text,
                     voice_var.get(),
                     speed_var.get(),
                     pitch_var.get(),
@@ -3883,12 +4251,13 @@ class AssistantApp:
 
             self.save_all_settings()
 
-            self.log(
-                "Audio-Einstellungen gespeichert."
-            )
+            saved_message = ("Audio settings saved."
+                             if self.language == "en"
+                             else "Audio-Einstellungen gespeichert.")
+            self.log(saved_message)
 
             speak_mbrola(
-                "Audio-Einstellungen gespeichert.",
+                saved_message,
                 self.voice,
                 self.speed,
                 self.pitch,
@@ -4545,8 +4914,18 @@ class AssistantApp:
         try:
             self.dashboard_clock_value.config(text=now.strftime("%H:%M:%S"))
             self.dashboard_qa_value.config(text=str(get_qa_count()))
+            if getattr(self, "language", "de") == "en":
+                self.dashboard_clock_title.config(text="TIME")
+                self.dashboard_qa_title.config(text="SAVED QUESTIONS")
+                self.dashboard_assistant_title.config(text="ASSISTANT")
         except Exception:
             pass
+
+        if getattr(self, "language", "de") == "en":
+            try:
+                self._translate_widget_tree()
+            except Exception:
+                pass
 
         if self.scheduler_running:
 
@@ -4565,12 +4944,21 @@ class AssistantApp:
         def worker():
 
             weather = get_weather_bad_driburg()
+            if getattr(self, "language", "de") == "en":
+                weather_words = {
+                    "In Bad Driburg sind es aktuell": "In Bad Driburg it is currently",
+                    "Grad und": "degrees with",
+                    "Kilometer pro Stunde Wind.": "kilometers per hour wind.",
+                    "Wind.": "wind.",
+                    "Regen": "Rain", "bewölkt": "cloudy", "Sonnig": "Sunny",
+                    "sonnig": "sunny", "Schnee": "Snow", "Temperatur": "Temperature",
+                }
+                for de, en in weather_words.items():
+                    weather = weather.replace(de, en)
 
             self.root.after(
                 0,
-                lambda: self.weather_label.config(
-                    text=weather
-                )
+                lambda: self.weather_label.config(text=weather)
             )
 
         threading.Thread(
@@ -5152,7 +5540,7 @@ class AssistantApp:
 
                     text = self.recognizer.recognize_google(
                         audio,
-                        language="de-DE"
+                        language="en-US" if getattr(self, "language", "de") == "en" else "de-DE"
                     )
 
                     # Während der Erkennung kann TTS gestartet worden sein.
@@ -6729,6 +7117,26 @@ class AssistantApp:
 
         original_text = str(question_text or "").strip()
         text_lower = original_text.lower().strip()
+
+        # English command aliases route through the established German
+        # command handlers so existing functionality and data remain intact.
+        if getattr(self, "language", "de") == "en":
+            aliases = {
+                "time": "uhrzeit", "what time is it": "wie spät ist es",
+                "date": "datum", "what is today's date": "welches datum haben wir",
+                "day": "wochentag", "what day is it today": "welcher tag ist heute",
+                "weather": "wetter", "what is the weather": "wie ist das wetter",
+                "lottery": "lotto", "lottery numbers": "lottozahlen",
+                "open browser": "öffne browser", "open google": "öffne google.com",
+                "youtube": "youtube", "youtube music": "youtube music",
+                "play music": "spiele musik", "radio": "radio",
+                "internet radio": "internetradio", "start web search": "starte websuche",
+                "web search": "starte websuche", "appointment": "termin",
+                "planner": "planer", "schedule": "termin",
+                "who am i": "wer bin ich", "do you know who i am": "kennst du mich"
+            }
+            original_text = aliases.get(text_lower, original_text)
+            text_lower = original_text.lower().strip()
 
         # ====================================================
         # EXPLIZITER BEFEHL: WEBSUCHE STARTEN
@@ -8590,6 +8998,8 @@ class AssistantApp:
 
         content = tk.Frame(self.page_frame, bg=th["bg"])
         content.pack(fill=tk.BOTH, expand=True, padx=18, pady=(0, 18))
+        if getattr(self, "language", "de") == "en":
+            self.root.after(250, self._translate_widget_tree)
         return content
 
     def _page_button(self, parent, text, command):
@@ -8604,14 +9014,14 @@ class AssistantApp:
         self.qa_panel.pack_forget()
         self.dashboard_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         self.qa_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        self.status_label.config(text="● BEREIT", fg=current_theme["green"])
+        self.status_label.config(text="● READY" if self.language == "en" else "● BEREIT", fg=current_theme["green"])
 
     def show_qa_editor(self):
         self.page_frame.place_forget()
         self.dashboard_panel.pack_forget()
         self.qa_panel.pack_forget()
         self.qa_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.status_label.config(text="● FRAGEN & ANTWORTEN", fg=current_theme["fg"])
+        self.status_label.config(text="● QUESTIONS & ANSWERS" if self.language == "en" else "● FRAGEN & ANTWORTEN", fg=current_theme["fg"])
         self.qa_search_entry.focus_set()
         self.log("Fragen & Antworten geöffnet.")
 
@@ -8701,14 +9111,46 @@ class AssistantApp:
         self.status_label.config(text="● EINSTELLUNGEN", fg=th["fg"])
 
     def open_help_window(self):
-        content = self._show_page("Anleitung", "Bedienung und Funktionen")
+        is_english = getattr(self, "language", "de") == "en"
+        title = "User guide" if is_english else "Anleitung"
+        subtitle = ("Operating instructions and features" if is_english
+                    else "Bedienung und Funktionen")
+        content = self._show_page(title, subtitle)
         th = current_theme
         text = tk.Text(content, wrap="word", relief="flat", bd=0,
-                       bg=th["bg2"], fg=th["fg"], insertbackground=th["fg"], padx=18, pady=18)
+                       bg=th["bg2"], fg=th["fg"], insertbackground=th["fg"],
+                       padx=18, pady=18)
         text.pack(fill=tk.BOTH, expand=True)
-        text.insert(tk.END, HELP_TEXT)
+        text.insert(tk.END, HELP_TEXT_EN if is_english else HELP_TEXT)
         text.config(state="disabled")
-        self.status_label.config(text="● HILFE", fg=th["fg"])
+
+        pdf_name = ("Sprachassistent_Manual_EN_v5.3.2.pdf" if is_english
+                    else "Sprachassistent_Anleitung_v5.2.pdf")
+        pdf_label = "Open PDF manual" if is_english else "PDF-Anleitung öffnen"
+        self._page_button(content, pdf_label,
+                          lambda name=pdf_name: self.open_manual_pdf(name)).pack(
+                              anchor=tk.W, pady=(10, 0))
+        self.status_label.config(
+            text="● HELP" if is_english else "● HILFE", fg=th["fg"])
+
+    def open_manual_pdf(self, filename):
+        """Open the language-matched PDF manual shipped with the application."""
+        manual_path = Path(__file__).resolve().parent / filename
+        if not manual_path.is_file():
+            messagebox.showerror(
+                "Manual" if self.language == "en" else "Anleitung",
+                ("The PDF manual was not found." if self.language == "en"
+                 else "Die PDF-Anleitung wurde nicht gefunden.")
+            )
+            return
+        try:
+            subprocess.Popen(["xdg-open", str(manual_path)])
+        except Exception as exc:
+            messagebox.showerror(
+                "Manual" if self.language == "en" else "Anleitung",
+                (f"Could not open the PDF manual: {exc}" if self.language == "en"
+                 else f"Die PDF-Anleitung konnte nicht geöffnet werden: {exc}")
+            )
 
     def change_music_path(self):
         self.show_music_page()
@@ -8910,32 +9352,66 @@ class AssistantApp:
         th = current_theme
         card = tk.Frame(content, bg=th["bg2"]); card.pack(fill=tk.X, pady=4)
         vars_ = {"voice": tk.StringVar(value=self.voice), "speed": tk.IntVar(value=self.speed), "pitch": tk.IntVar(value=self.pitch), "volume": tk.IntVar(value=self.volume)}
-        ttk.Label(card, text="Stimme (MBROLA):").grid(row=0, column=0, sticky=tk.W, padx=18, pady=10)
-        ttk.Combobox(card, textvariable=vars_["voice"], state="readonly", values=[f"mb-de{i}" for i in range(1,9)]).grid(row=0,column=1,sticky=tk.W,pady=10)
-        for row, key, label, lo, hi in [(1,"speed","Geschwindigkeit",80,260),(2,"pitch","Tonhöhe",0,99),(3,"volume","Lautstärke",50,200)]:
+        ttk.Label(card, text=("Voice (MBROLA):" if self.language == "en" else "Stimme (MBROLA):")).grid(row=0, column=0, sticky=tk.W, padx=18, pady=10)
+        voice_combo = ttk.Combobox(
+            card,
+            textvariable=vars_["voice"],
+            state="readonly",
+            values=[*(f"mb-de{i}" for i in range(1, 9)),
+                    *get_installed_english_mbrola_voices()]
+        )
+        voice_combo.grid(row=0, column=1, sticky=tk.W, pady=10)
+        show_all_mbrola = tk.BooleanVar(value=False)
+        def update_mbrola_choices():
+            if show_all_mbrola.get():
+                choices = get_installed_mbrola_voices()
+            else:
+                choices = [*(f"mb-de{i}" for i in range(1, 9)),
+                           *get_installed_english_mbrola_voices()]
+            current_voice = vars_["voice"].get()
+            voice_combo.configure(values=choices)
+            if current_voice in choices:
+                vars_["voice"].set(current_voice)
+            elif choices:
+                vars_["voice"].set(choices[0])
+        ttk.Checkbutton(
+            card,
+            text=("Show all installed MBROLA modules" if self.language == "en"
+                  else "Alle installierten MBROLA-Module anzeigen"),
+            variable=show_all_mbrola,
+            command=update_mbrola_choices
+        ).grid(row=1, column=0, columnspan=3, sticky=tk.W, padx=18, pady=(0, 8))
+        for row, key, label, lo, hi in [(2,"speed","Geschwindigkeit",80,260),(3,"pitch","Tonhöhe",0,99),(4,"volume","Lautstärke",50,200)]:
             ttk.Label(card,text=label).grid(row=row,column=0,sticky=tk.W,padx=18,pady=8)
             ttk.Spinbox(card,from_=lo,to=hi,textvariable=vars_[key],width=8).grid(row=row,column=1,sticky=tk.W,pady=8)
-        def test(): speak_mbrola("Dies ist ein Test der aktuellen Stimme.", vars_["voice"].get(), vars_["speed"].get(), vars_["pitch"].get(), vars_["volume"].get())
+        def test():
+            test_text = ("This is a test of the current voice." if self.language == "en"
+                         else "Dies ist ein Test der aktuellen Stimme.")
+            speak_mbrola(test_text, vars_["voice"].get(), vars_["speed"].get(), vars_["pitch"].get(), vars_["volume"].get())
         def save():
             try:
                 self.voice=vars_["voice"].get(); self.speed=int(vars_["speed"].get()); self.pitch=int(vars_["pitch"].get()); self.volume=int(vars_["volume"].get())
             except ValueError:
                 messagebox.showwarning("Fehler","Bitte gültige Zahlen eingeben."); return
             self.save_all_settings(); self.log("Audio-Einstellungen gespeichert.")
-        row = tk.Frame(card,bg=th["bg2"]); row.grid(row=4,column=0,columnspan=2,sticky=tk.W,padx=14,pady=16)
+        row = tk.Frame(card,bg=th["bg2"]); row.grid(row=5,column=0,columnspan=2,sticky=tk.W,padx=14,pady=16)
         self._page_button(row,"Test",test).pack(side=tk.LEFT,padx=4); self._page_button(row,"Speichern",save).pack(side=tk.LEFT,padx=4)
         self.status_label.config(text="● AUDIO / STIMME", fg=th["fg"])
 
     def open_program_manager(self):
-        content = self._show_page("Programme", "Programme verwalten, speichern und starten")
+        is_english = getattr(self, "language", "de") == "en"
+        page_title = "Applications" if is_english else "Programme"
+        page_subtitle = ("Manage, save and launch applications" if is_english
+                         else "Programme verwalten, speichern und starten")
+        content = self._show_page(page_title, page_subtitle)
         th = current_theme
         top = tk.Frame(content,bg=th["bg2"]); top.pack(fill=tk.BOTH,expand=True)
         listbox=tk.Listbox(top, relief="flat",bd=0,bg=th["bg"],fg=th["fg"],selectbackground=th["hover"],highlightthickness=0)
         listbox.pack(side=tk.LEFT,fill=tk.BOTH,expand=True,padx=(14,7),pady=14)
         edit=tk.Frame(top,bg=th["bg2"]); edit.pack(side=tk.RIGHT,fill=tk.Y,padx=14,pady=14)
         name=ttk.Entry(edit,width=36); path=ttk.Entry(edit,width=36)
-        ttk.Label(edit,text="Name:").pack(anchor=tk.W,pady=(8,3)); name.pack(fill=tk.X,pady=3)
-        ttk.Label(edit,text="Pfad:").pack(anchor=tk.W,pady=(10,3)); path.pack(fill=tk.X,pady=3)
+        ttk.Label(edit,text="Name:" if is_english else "Name:").pack(anchor=tk.W,pady=(8,3)); name.pack(fill=tk.X,pady=3)
+        ttk.Label(edit,text="Path:" if is_english else "Pfad:").pack(anchor=tk.W,pady=(10,3)); path.pack(fill=tk.X,pady=3)
         add_context_menu(name); add_context_menu(path)
         def reload_():
             listbox.delete(0,tk.END)
@@ -8949,17 +9425,27 @@ class AssistantApp:
         listbox.bind("<<ListboxSelect>>",select)
         def save():
             n=name.get().strip().lower(); p=path.get().strip()
-            if not n or not p: messagebox.showwarning("Fehler","Name und Pfad dürfen nicht leer sein."); return
+            if not n or not p:
+                messagebox.showwarning("Warning" if is_english else "Fehler",
+                                       "Name and path must not be empty." if is_english
+                                       else "Name und Pfad dürfen nicht leer sein.")
+                return
             self.programs[n]=p; self.save_all_settings(); reload_(); self.log(f"Programm gespeichert: {n}")
         def delete():
             n=name.get().strip().lower()
             if n in self.programs: del self.programs[n]; self.save_all_settings(); reload_(); name.delete(0,tk.END); path.delete(0,tk.END)
-            else: messagebox.showwarning("Fehler","Programm nicht gefunden.")
+            else: messagebox.showwarning("Warning" if is_english else "Fehler",
+                                         "Application not found." if is_english else "Programm nicht gefunden.")
         def start():
             p=path.get().strip()
             if p: open_program(p)
-        for txt,cmd in [("Speichern",save),("Löschen",delete),("Starten",start)]: self._page_button(edit,txt,cmd).pack(anchor=tk.W,pady=5)
-        reload_(); self.status_label.config(text="● PROGRAMME", fg=th["fg"])
+        for txt,cmd in [("Save" if is_english else "Speichern",save),
+                        ("Delete" if is_english else "Löschen",delete),
+                        ("Launch" if is_english else "Starten",start)]:
+            self._page_button(edit,txt,cmd).pack(anchor=tk.W,pady=5)
+        reload_()
+        self.status_label.config(text="● APPLICATIONS" if is_english else "● PROGRAMME",
+                                 fg=th["fg"])
 
 # ============================================================
 # BACKUP-FUNKTION

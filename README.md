@@ -1,13 +1,17 @@
-# Sprachassistent v5.3.1
+# Sprachassistent v5.3.2
 
-Deutschsprachiger Sprachassistent von Goldisoft.
+Zweisprachiger Sprachassistent (Deutsch / English) von Goldisoft.
 
 ![Sprachassistent](sprachassistent.png)
 
 [Github Seite](https://github.com/Angonikro/Sprachassistent/)
 
+## Integrierte Hilfe auf Deutsch und Englisch
+Die integrierte Anleitung wechselt mit der Spracheinstellung zwischen der vollständigen deutschen und englischen Fassung. Zusätzlich liegt die englische PDF-Anleitung im Paket.
+
 ## Funktionen
-- Sprachsteuerung und Sprachausgabe
+- Sprachsteuerung und Sprachausgabe auf Deutsch und Englisch
+- Umschaltbare Spracheinstellung (Deutsch / English), dauerhaft gespeichert
 - Chat-/Antwortfenster und gespeicherte Fragen/Antworten
 - Websuche
 - Terminplaner und Erinnerungen
@@ -36,13 +40,13 @@ Das DEB-Paket installiert die Debian-Systemabhängigkeiten automatisch über APT
 - `python3-requests`, `python3-rapidfuzz`, `python3-opencv`, `python3-pil`
 - `python3-pyaudio` für den Mikrofonzugriff
 - `espeak-ng` für die Sprachausgabe
-- `mbrola` und `mbrola-de4` für die verwendete deutsche MBROLA-Stimme `mb-de4`
+- `mbrola`, `mbrola-de4` und `mbrola-en1` für die deutschen und englischen MBROLA-Stimmen (`mb-de4` und `mb-en1`)
 - `xdg-utils` zum Öffnen von Dateien und Ordnern
 
 Installation:
 
 ```bash
-sudo apt install ./sprachassistent_5.3.1_all.deb
+sudo apt install ./sprachassistent_5.3.2_all.deb
 ```
 
 **Wichtig – SpeechRecognition:** Das Python-Modul `SpeechRecognition` wird nicht als Debian-Abhängigkeit mitinstalliert. Es muss separat mit pip für den System-Python installiert werden:
@@ -59,7 +63,7 @@ Zuerst die Systempakete installieren:
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip python3-venv python3-tk python3-pyaudio espeak-ng mbrola mbrola-de4 xdg-utils
+sudo apt install python3 python3-pip python3-venv python3-tk python3-pyaudio espeak-ng mbrola mbrola-de4 mbrola-en1 xdg-utils
 ```
 
 Danach die Python-Pakete installieren:
@@ -80,9 +84,28 @@ python Sprachassistent.py
 
 `--system-site-packages` macht das über APT installierte `python3-pyaudio` innerhalb der virtuellen Umgebung verfügbar. `SpeechRecognition` wird über pip installiert.
 
+
+### Optionale zusätzliche MBROLA-Stimmen
+
+Neben den mitgelieferten deutschen und englischen Stimmen können bei Bedarf weitere MBROLA-Sprachpakete aus den Debian-Paketquellen installiert werden. Welche Stimmen verfügbar sind, hängt von der verwendeten Debian-Version und Architektur ab.
+
+Verfügbare Pakete suchen:
+
+```bash
+apt-cache search mbrola
+```
+
+Ein zusätzliches Stimmenpaket kann anschließend beispielsweise so installiert werden:
+
+```bash
+sudo apt install mbrola-<sprachpaket>
+```
+
+`<sprachpaket>` ist dabei durch den tatsächlichen Paketnamen aus der Suchausgabe zu ersetzen. Nach der Installation kann die zusätzliche Stimme verwendet werden, sofern sie von MBROLA und der Anwendung unterstützt wird.
+
 ## Abhängigkeiten
 Die Python-Abhängigkeiten sind in `requirements.txt` aufgeführt. Für die Sprach- und Audiofunktionen können zusätzlich Systempakete erforderlich sein; deren Verfügbarkeit hängt von Betriebssystem und Distribution ab.
 
-**Version 5.3.1 – By Goldisoft 2026**
+**Version 5.3.2 – By Goldisoft 2026**
 
 73 de DO2QG Andreas
